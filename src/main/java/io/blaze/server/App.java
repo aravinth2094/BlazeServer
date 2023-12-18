@@ -24,6 +24,8 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public final class App {
@@ -79,6 +81,7 @@ public final class App {
             addController(endpointStatisticsController);
         }
         LOG.info("Application starting...");
+        final LocalDateTime start = LocalDateTime.now();
         validatePaths();
         final EventLoopGroup parentGroup = getEventLoopGroup(2);
         final EventLoopGroup childGroup = getEventLoopGroup(3);
@@ -91,6 +94,7 @@ public final class App {
                     Collections.unmodifiableList(responseFilters));
             final ChannelFuture channelFuture = nettyConfig.getBootstrap().bind(appConfig.getServer().getPort()).sync();
             LOG.info("Application started on port {}", appConfig.getServer().getPort());
+            LOG.info("Server started in {} ms", Duration.between(start, LocalDateTime.now()).toMillis());
             channelFuture.channel().closeFuture().sync();
         } catch (final Exception e) {
             throw new RuntimeException(e);

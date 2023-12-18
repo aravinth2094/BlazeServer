@@ -1,6 +1,7 @@
 package com.example;
 
 import io.blaze.server.annotation.Init;
+import io.blaze.server.annotation.Value;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,9 +11,13 @@ public final class AppServiceImpl implements AppService {
 
     private final static Logger LOG = LogManager.getLogger(AppServiceImpl.class);
 
+    @Value("server.port:80")
+    private int port;
+
     @Init
     private void init() {
         LOG.info("AppService initialized");
+        LOG.info("Server port: {}", port);
     }
 
     @Override

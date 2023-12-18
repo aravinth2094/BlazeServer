@@ -2,7 +2,10 @@ package io.blaze.server.resolver;
 
 import io.blaze.server.annotation.Init;
 import io.blaze.server.annotation.Inject;
+import io.blaze.server.annotation.Value;
+import io.blaze.server.config.AppConfig;
 import io.blaze.server.context.AppContext;
+import org.yaml.snakeyaml.Yaml;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -17,10 +20,11 @@ public final class DependencyResolver {
     public static <T> T resolve(final T obj) {
         try {
             for (final Field field : obj.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                setProperty(obj, field);
                 if (!field.isAnnotationPresent(Inject.class)) {
                     continue;
                 }
-                field.setAccessible(true);
                 if (field.get(obj) != null) {
                     continue;
                 }
@@ -54,6 +58,22 @@ public final class DependencyResolver {
                     method.invoke(obj);
                 }
             }
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static <T> void setProperty(final T obj, final Field field) {
+        try {
+            if (!field.isAnnotationPresent(Value.class)) {
+                return;
+            }
+            final Value value = field.getAnnotation(Value.class);
+            final String[] valueAndDefault = value.value().split(":");
+            final String property = valueAndDefault[0];
+            final AppConfig appConfig = AppContext.get(AppConfig.class);
+            final String actualValue = (String) appConfig.getProperties().get(property);
+            field.set(obj, new Yaml().loadAs(actualValue == null ? valueAndDefault[1] : actualValue, field.getType()));
         } catch (final Exception e) {
             throw new RuntimeException(e);
         }

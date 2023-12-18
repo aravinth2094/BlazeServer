@@ -1,8 +1,11 @@
 package io.blaze.server.config;
 
+import java.util.Properties;
+
 public final class AppConfig {
 
     private ServerConfig server;
+    private Properties properties;
 
     public AppConfig() {
     }
@@ -17,5 +20,13 @@ public final class AppConfig {
 
     public void setServer(ServerConfig server) {
         this.server = server;
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
     }
 }

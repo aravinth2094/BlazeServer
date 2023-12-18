@@ -6,6 +6,7 @@ import io.blaze.server.config.AppConfig;
 import io.blaze.server.config.DefaultNettyConfig;
 import io.blaze.server.config.NettyConfig;
 import io.blaze.server.config.ServerConfig;
+import io.blaze.server.context.AppContext;
 import io.blaze.server.controller.EndpointStatisticsController;
 import io.blaze.server.handler.EndpointStatisticsFilter;
 import io.blaze.server.handler.HttpRequestFilter;
@@ -49,6 +50,7 @@ public final class App {
         this.requestFilters = new LinkedList<>();
         this.responseFilters = new LinkedList<>();
         this.appConfig = loadAppConfig();
+        AppContext.put(AppConfig.class, this.appConfig);
     }
 
     private AppConfig loadAppConfig() {
@@ -59,12 +61,39 @@ public final class App {
             LOG.info("{}.yaml not found. Loading default configuration", APP_CONFIG_FILE_NAME);
             return DEFAULT_APP_CONFIG;
         }
+        final AppConfig appConfig;
         try (final InputStream in = this.getClass().getClassLoader().getResourceAsStream(fileName)) {
             final Yaml yaml = new Yaml();
-            return yaml.loadAs(in, AppConfig.class);
+            appConfig = yaml.loadAs(in, AppConfig.class);
         } catch (final Exception e) {
             throw new RuntimeException(e);
         }
+        Properties properties = flattenYaml(fileName);
+        System.getProperties().forEach((key, value) -> {
+            properties.setProperty(String.valueOf(key), String.valueOf(value));
+        });
+        appConfig.setProperties(properties);
+        return appConfig;
+    }
+
+    private Properties flattenYaml(final String yamlFileName) {
+        try (final InputStream in = this.getClass().getClassLoader().getResourceAsStream(yamlFileName)) {
+            return flattenYaml("", new Yaml().load(in), new Properties());
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Properties flattenYaml(String currentKey, Map<String, Object> yamlData, Properties properties) {
+        for (Map.Entry<String, Object> entry : yamlData.entrySet()) {
+            final String key = currentKey.isEmpty() ? entry.getKey() : currentKey + "." + entry.getKey();
+            if (entry.getValue() instanceof Map) {
+                flattenYaml(key, (Map<String, Object>) entry.getValue(), properties);
+            } else {
+                properties.setProperty(key, entry.getValue().toString());
+            }
+        }
+        return properties;
     }
 
     private String getFileNameForProfile(final String profile) {

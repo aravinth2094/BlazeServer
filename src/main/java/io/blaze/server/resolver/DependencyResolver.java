@@ -1,9 +1,11 @@
 package io.blaze.server.resolver;
 
+import io.blaze.server.annotation.Init;
 import io.blaze.server.annotation.Inject;
 import io.blaze.server.context.AppContext;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 public final class DependencyResolver {
@@ -30,7 +32,28 @@ public final class DependencyResolver {
                 field.set(obj, instance);
                 resolve(instance);
             }
+            init(obj);
             return obj;
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static <T> void init(final T obj) {
+        try {
+            int count = 0;
+            for (final Method method : obj.getClass().getDeclaredMethods()) {
+                if (method.isAnnotationPresent(Init.class)) {
+                    if (++count > 1) {
+                        throw new IllegalStateException(obj.getClass().getCanonicalName() + " cannot have multiple @Init annotations");
+                    }
+                    if (Modifier.isStatic(method.getModifiers())) {
+                        throw new IllegalStateException("@Init method " + method.getName() + " cannot be static");
+                    }
+                    method.setAccessible(true);
+                    method.invoke(obj);
+                }
+            }
         } catch (final Exception e) {
             throw new RuntimeException(e);
         }

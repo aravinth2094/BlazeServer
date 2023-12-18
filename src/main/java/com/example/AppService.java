@@ -2,11 +2,11 @@ package com.example;
 
 import java.util.Map;
 
-public final class AppService {
+/**
+ * @author Aravinth Sundaram on 18/12/23
+ */
+public interface AppService {
 
-    public Map<String, String> welcome(final String key,
-                                       final Map<String, String> body) {
-        return Map.of(key, body.get("message"));
-    }
-
+    Map<String, String> welcome(final String key,
+                                final Map<String, String> body);
 }

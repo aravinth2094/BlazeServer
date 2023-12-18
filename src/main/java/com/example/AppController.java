@@ -15,7 +15,7 @@ public final class AppController {
 
     private final static Logger LOG = LogManager.getLogger(AppController.class);
 
-    @Inject
+    @Inject(implementation = AppServiceImpl.class)
     private AppService appService;
 
     @Get("/welcome")

@@ -10,6 +10,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.text.MessageFormat;
 
 public final class DependencyResolver {
 
@@ -73,6 +74,14 @@ public final class DependencyResolver {
             final String property = valueAndDefault[0];
             final AppConfig appConfig = AppContext.get(AppConfig.class);
             final String actualValue = (String) appConfig.getProperties().get(property);
+            if (actualValue == null && valueAndDefault.length < 2) {
+                throw new IllegalStateException(
+                        MessageFormat.format(
+                                "Cannot set property \"{0}\" to field \"{1}\". " +
+                                        "Property \"{0}\" not found. Assign a default value to avoid exception.",
+                                property, field)
+                );
+            }
             field.set(obj, new Yaml().loadAs(actualValue == null ? valueAndDefault[1] : actualValue, field.getType()));
         } catch (final Exception e) {
             throw new RuntimeException(e);

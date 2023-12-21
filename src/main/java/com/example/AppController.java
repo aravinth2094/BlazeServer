@@ -1,10 +1,6 @@
 package com.example;
 
-import io.blaze.server.annotation.Get;
-import io.blaze.server.annotation.Inject;
-import io.blaze.server.annotation.Post;
-import io.blaze.server.annotation.Route;
-import io.blaze.server.model.HttpRequest;
+import io.blaze.server.annotation.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,22 +15,21 @@ public final class AppController {
     private AppService appService;
 
     @Get("/welcome")
-    public Map<String, String> welcome(final HttpRequest request) {
+    public Map<String, String> welcome() {
         LOG.info("Handling request");
         return Map.of("message", "hello from netty");
     }
 
     @Post("/welcome")
-    public Map<String, String> welcomePost(final HttpRequest request) throws Exception {
+    public Map<String, String> welcomePost(@Body Map<String, String> body) {
         LOG.info("Handling request");
-        final Map<?, ?> body = request.body(Map.class);
-        return Map.of("echo", (String) body.get("message"));
+        return Map.of("echo", body.get("message"));
     }
 
     @Post("/welcome/:key")
-    public Map<String, String> welcomePostWithPathVariable(final HttpRequest request) throws Exception {
+    public Map<String, String> welcomePostWithPathVariable(@Body Map<String, String> body,
+                                                           @PathVariable("key") String key) {
         LOG.info("Handling request");
-        final Map<?, ?> body = request.body(Map.class);
-        return appService.welcome(request.getPathVariable("key"), (Map<String, String>) body);
+        return appService.welcome(key, body);
     }
 }

@@ -5,16 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Inject {
-    Class<?> implementation() default Object.class;
-
-    Scope scope() default Scope.Singleton;
-
-    enum Scope {
-        Singleton,
-        Prototype
-    }
+public @interface Body {
 }
-

@@ -21,9 +21,14 @@ public final class AppController {
     }
 
     @Post("/welcome")
-    public Map<String, String> welcomePost(@Body Map<String, String> body) {
+    public Map<String, String> welcomePost(@Body Map<String, String> body,
+                                           @Value("key:echo") String key,
+                                           @Value("java.runtime.version:unknown") String javaRuntime) {
         LOG.info("Handling request");
-        return Map.of("echo", body.get("message"));
+        return Map.of(
+                key, body.get("message"),
+                "runtime", javaRuntime
+        );
     }
 
     @Post("/welcome/:key")

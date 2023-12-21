@@ -3,11 +3,14 @@ package io.blaze.server.model;
 import io.blaze.server.annotation.Body;
 import io.blaze.server.annotation.Inject;
 import io.blaze.server.annotation.PathVariable;
+import io.blaze.server.annotation.Value;
 import io.blaze.server.context.AppContext;
+import io.blaze.server.resolver.ValueUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +37,7 @@ public record ResolvedRoute(Object controller,
             inject(parameter, arg);
             body(parameter, arg, request);
             pathVariable(parameter, arg, request);
+            value(parameter, arg);
             args.add(arg.get());
         }
         return args.toArray();
@@ -81,6 +85,26 @@ public record ResolvedRoute(Object controller,
         }
         final String pathVariableName = parameter.getAnnotation(PathVariable.class).value();
         arg.set(request.getPathVariable(pathVariableName));
+    }
+
+    private void value(final Parameter parameter,
+                       final AtomicReference<Object> arg) {
+        if (!parameter.isAnnotationPresent(Value.class)) {
+            return;
+        }
+        final Object value = ValueUtils.extractValue(
+                parameter.getAnnotation(Value.class).value(),
+                parameter.getType()
+        );
+        if (value == null) {
+            throw new IllegalStateException(
+                    MessageFormat.format(
+                            "Cannot set property \"{0}\" to parameter. " +
+                                    "Property \"{0}\" not found. Assign a default value to avoid exception.",
+                            parameter.getAnnotation(Value.class).value().split(":")[0])
+            );
+        }
+        arg.set(value);
     }
 
 }

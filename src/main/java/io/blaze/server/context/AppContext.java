@@ -20,11 +20,11 @@ public final class AppContext {
         // Utility class
     }
 
-    public static <T> T get(final Class<?> key) {
+    public static <T> T get(final Class<? extends T> key) {
         return (T) OBJECT_STORE.get(key);
     }
 
-    public static <T> void put(final Class<?> key,
+    public static <T> void put(final Class<? extends T> key,
                                final T value) {
         OBJECT_STORE.put(key, value);
     }

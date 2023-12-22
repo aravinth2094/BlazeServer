@@ -19,7 +19,9 @@ public final class DependencyResolver {
     public static <T> T resolve(final T obj) {
         try {
             for (final Field field : obj.getClass().getDeclaredFields()) {
-                field.setAccessible(true);
+                if (!field.trySetAccessible()) {
+                    continue;
+                }
                 setProperty(obj, field);
                 if (!field.isAnnotationPresent(Inject.class)) {
                     continue;
@@ -32,8 +34,7 @@ public final class DependencyResolver {
                     case Singleton -> getOrCreate(field);
                     case Prototype -> createInstance(field);
                 };
-                field.set(obj, instance);
-                resolve(instance);
+                field.set(obj, resolve(instance));
             }
             init(obj);
             return obj;

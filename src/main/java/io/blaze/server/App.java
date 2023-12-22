@@ -1,14 +1,11 @@
 package io.blaze.server;
 
-import io.blaze.server.annotation.Inject;
 import io.blaze.server.annotation.Route;
 import io.blaze.server.config.AppConfig;
 import io.blaze.server.config.DefaultNettyConfig;
 import io.blaze.server.config.NettyConfig;
 import io.blaze.server.config.ServerConfig;
 import io.blaze.server.context.AppContext;
-import io.blaze.server.controller.EndpointStatisticsController;
-import io.blaze.server.handler.EndpointStatisticsFilter;
 import io.blaze.server.handler.HttpRequestFilter;
 import io.blaze.server.handler.HttpResponseFilter;
 import io.blaze.server.resolver.DependencyResolver;
@@ -17,6 +14,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,11 +38,6 @@ public final class App {
     private final List<HttpRequestFilter> requestFilters;
     private final List<HttpResponseFilter> responseFilters;
     private final AppConfig appConfig;
-    private boolean endpointStatisticsEnabled;
-    @Inject
-    private EndpointStatisticsFilter endpointStatisticsFilter;
-    @Inject
-    private EndpointStatisticsController endpointStatisticsController;
 
     public App() {
         this.controllers = new LinkedList<>();
@@ -105,10 +99,6 @@ public final class App {
 
     public void start() {
         DependencyResolver.resolve(this);
-        if (endpointStatisticsEnabled) {
-            addFilter(endpointStatisticsFilter);
-            addController(endpointStatisticsController);
-        }
         LOG.info("Application starting...");
         final LocalDateTime start = LocalDateTime.now();
         validatePaths();
@@ -135,6 +125,7 @@ public final class App {
 
     private EventLoopGroup getEventLoopGroup(final int threads) {
         if (Epoll.isAvailable()) return new EpollEventLoopGroup(threads);
+        if (KQueue.isAvailable()) return new KQueueEventLoopGroup(threads);
         return new NioEventLoopGroup();
     }
 
@@ -163,11 +154,6 @@ public final class App {
             throw new IllegalStateException("Response filter cannot be null");
         }
         responseFilters.add(DependencyResolver.resolve(responseFilter));
-        return this;
-    }
-
-    public App enableEndpointStatistics() {
-        endpointStatisticsEnabled = true;
         return this;
     }
 

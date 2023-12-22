@@ -33,17 +33,18 @@ public final class AppContext {
         return Collections.unmodifiableCollection(OBJECT_STORE.values());
     }
 
-    public static <T> T getOrDefault(final Class<?> key,
+    public static <T> T getOrDefault(final Class<? extends T> key,
                                      final T defaultValue) {
         return (T) OBJECT_STORE.getOrDefault(key, defaultValue);
     }
 
-    public static <T> T computeIfAbsent(final Class<?> key,
+    public static <T> T computeIfAbsent(final Class<? extends T> key,
                                         final Function<? super Class<?>, ?> mappingFunction) {
         return (T) OBJECT_STORE.computeIfAbsent(key, mappingFunction);
     }
 
-    public static <T> T createInstance(Class<?> clazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    @SuppressWarnings("unchecked")
+    public static <T> T createInstance(Class<? extends T> clazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         for (final Constructor<?> constructor : clazz.getDeclaredConstructors()) {
             if (constructor.getParameterCount() == 0) {
                 constructor.setAccessible(true);

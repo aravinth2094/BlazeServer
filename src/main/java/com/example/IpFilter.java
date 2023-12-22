@@ -13,7 +13,7 @@ public final class IpFilter extends HttpRequestFilter {
 
     @Override
     protected HttpResponse filter(final HttpRequest request) {
-        LOG.info("Request from " + request.remoteAddress().getAddress().getHostAddress());
+        LOG.debug("Request from " + request.remoteAddress().getAddress().getHostAddress());
         if ("127.0.0.1".equals(request.remoteAddress().getAddress().getHostAddress())) {
             return new HttpResponse(HttpResponseStatus.FORBIDDEN);
         }

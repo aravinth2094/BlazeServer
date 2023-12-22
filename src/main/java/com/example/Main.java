@@ -9,7 +9,6 @@ public class Main {
                 .addController(new AppController())
                 .addFilter(new IpFilter())
                 .addFilter(new CustomCorsFilter())
-                .enableEndpointStatistics()
                 .start();
     }
 

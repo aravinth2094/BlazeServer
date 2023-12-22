@@ -12,7 +12,7 @@ public final class CustomCorsFilter extends HttpResponseFilter {
 
     @Override
     protected void filter(final HttpResponse response) {
-        LOG.info("Applying CORS...");
+        LOG.debug("Applying CORS...");
         response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "https://localhost:8080");
     }
 }

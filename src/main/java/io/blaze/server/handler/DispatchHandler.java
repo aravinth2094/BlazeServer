@@ -29,11 +29,11 @@ public final class DispatchHandler extends SimpleChannelInboundHandler<HttpReque
 
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx,
-                                final HttpRequest request) throws Exception {
-        LOG.info("{} {}", request.method(), request.uri());
+                                final HttpRequest request) {
+        LOG.debug("{} {}", request.method(), request.uri());
         final ResolvedRoute resolvedRoute = ROUTE_RESOLVER.resolve(request.method(), request.uri(), controllers);
         if (resolvedRoute == null) {
-            ctx.writeAndFlush(new HttpResponse(HttpResponseStatus.NOT_FOUND));
+            ctx.writeAndFlush(new HttpResponse(HttpResponseStatus.NOT_FOUND), ctx.voidPromise());
             return;
         }
         handlerThreadPool.submit(() -> {
@@ -44,13 +44,13 @@ public final class DispatchHandler extends SimpleChannelInboundHandler<HttpReque
                 LOG.error("Dispatch invocation error", e);
                 result = new HttpResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
             }
-            ctx.writeAndFlush(result);
+            ctx.writeAndFlush(result, ctx.voidPromise());
         });
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        LOG.error("Dispatch error", cause);
         ctx.writeAndFlush(new HttpResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR));
     }
 }

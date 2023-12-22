@@ -23,11 +23,13 @@ public final class AppController {
     @Post("/welcome")
     public Map<String, String> welcomePost(@Body Map<String, String> body,
                                            @Value("key:echo") String key,
-                                           @Value("java.runtime.version:unknown") String javaRuntime) {
+                                           @Value("java.runtime.version:unknown") String javaRuntime,
+                                           @RequestAttribute("ip") String ipAddress) {
         LOG.info("Handling request");
         return Map.of(
                 key, body.get("message"),
-                "runtime", javaRuntime
+                "runtime", javaRuntime,
+                "ipAddress", ipAddress
         );
     }
 

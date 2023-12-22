@@ -1,9 +1,6 @@
 package io.blaze.server.model;
 
-import io.blaze.server.annotation.Body;
-import io.blaze.server.annotation.Inject;
-import io.blaze.server.annotation.PathVariable;
-import io.blaze.server.annotation.Value;
+import io.blaze.server.annotation.*;
 import io.blaze.server.context.AppContext;
 import io.blaze.server.resolver.ValueUtils;
 
@@ -38,6 +35,7 @@ public record ResolvedRoute(Object controller,
             body(parameter, arg, request);
             pathVariable(parameter, arg, request);
             value(parameter, arg);
+            requestAttribute(parameter, arg, request);
             args.add(arg.get());
         }
         return args.toArray();
@@ -105,6 +103,26 @@ public record ResolvedRoute(Object controller,
             );
         }
         arg.set(value);
+    }
+
+    private void requestAttribute(final Parameter parameter,
+                                  final AtomicReference<Object> arg,
+                                  final HttpRequest request) {
+        if (!parameter.isAnnotationPresent(RequestAttribute.class)) {
+            return;
+        }
+        final Object attribute = request
+                .getAttributes()
+                .get(parameter.getAnnotation(RequestAttribute.class).value());
+        if (attribute == null) {
+            throw new IllegalStateException(
+                    MessageFormat.format(
+                            "Cannot set attribute \"{0}\" to parameter. " +
+                                    "Attribute \"{0}\" not found.",
+                            parameter.getAnnotation(RequestAttribute.class).value())
+            );
+        }
+        arg.set(attribute);
     }
 
 }

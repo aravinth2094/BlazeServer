@@ -17,6 +17,7 @@ public final class IpFilter extends HttpRequestFilter {
         if ("127.0.0.1".equals(request.remoteAddress().getAddress().getHostAddress())) {
             return new HttpResponse(HttpResponseStatus.FORBIDDEN);
         }
+        request.getAttributes().put("ip", request.remoteAddress().getAddress().getHostAddress());
         return null;
     }
 }

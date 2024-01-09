@@ -1,9 +1,9 @@
 package io.blaze.server.context;
 
+import io.blaze.server.resolver.MethodInvoker;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,6 +15,7 @@ public final class AppContext {
 
     private static final Logger LOG = LogManager.getLogger(AppContext.class);
     private static final Map<Class<?>, Object> OBJECT_STORE = new Hashtable<>();
+    private static final MethodInvoker INVOKER = new MethodInvoker();
 
     private AppContext() {
         // Utility class
@@ -44,14 +45,7 @@ public final class AppContext {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T createInstance(Class<? extends T> clazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        for (final Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-            if (constructor.getParameterCount() == 0) {
-                constructor.setAccessible(true);
-                LOG.info("Creating instance for {}", clazz.getCanonicalName());
-                return (T) constructor.newInstance();
-            }
-        }
-        throw new NoSuchMethodException(clazz.getCanonicalName() + " must have a default constructor");
+    public static <T> T createInstance(Class<? extends T> clazz) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        return (T) INVOKER.construct(clazz.getDeclaredConstructors()[0]);
     }
 }

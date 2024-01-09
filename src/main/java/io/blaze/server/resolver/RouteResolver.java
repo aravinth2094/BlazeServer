@@ -72,13 +72,11 @@ public final class RouteResolver {
     }
 
     public Object convertType(final String input) {
-        if (input.matches("^-?\\d*\\.\\d+$")) {
-            return Double.parseDouble(input);
-        } else if (input.matches("^-?\\d+$")) {
-            return Integer.parseInt(input);
-        } else {
-            return input;
-        }
+        return switch (input) {
+            case "^-?\\d*\\.\\d+$" -> Double.parseDouble(input);
+            case "^-?\\d+$" -> Integer.parseInt(input);
+            default -> input;
+        };
     }
 
 

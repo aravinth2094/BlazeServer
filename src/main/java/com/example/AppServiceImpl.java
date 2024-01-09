@@ -11,8 +11,11 @@ public final class AppServiceImpl implements AppService {
 
     private final static Logger LOG = LogManager.getLogger(AppServiceImpl.class);
 
-    @Value("app.worker.threads:5")
-    private int workerThreads;
+    private final int workerThreads;
+
+    public AppServiceImpl(@Value("app.worker.threads:5") final int workerThreads) {
+        this.workerThreads = workerThreads;
+    }
 
     @Init
     private void init() {
